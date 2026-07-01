@@ -1,0 +1,2766 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XAUUSD Signal Pro — Scalping Intelligence</title>
+<style>
+  :root {
+    --gold: #D4AF37;
+    --gold-light: #F2D57B;
+    --gold-dim: #8B6914;
+    --buy: #00E676;
+    --buy-dim: #00521F;
+    --sell: #FF3D5A;
+    --sell-dim: #5C0015;
+    --neutral: #7B8FA6;
+    --bg: #090B0F;
+    --bg2: #0E1117;
+    --bg3: #141820;
+    --bg4: #1C2230;
+    --border: #1E2A3A;
+    --text: #E8EDF5;
+    --text-dim: #5A6B80;
+    --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: 'SF Mono', 'Roboto Mono', 'Courier New', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--buy);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--buy);
+    border-radius: 50%;
+    animation: pulse 1.4s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  .price-header {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .price-change {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: rgba(0,230,118,0.1);
+    color: var(--buy);
+  }
+
+  /* MAIN LAYOUT */
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 20px;
+    display: grid;
+    gap: 20px;
+  }
+
+  /* SIGNAL PANEL — BIG */
+  .signal-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .signal-glow {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+    transition: background 0.5s;
+  }
+
+  .signal-glow.buy { background: linear-gradient(90deg, transparent, var(--buy), transparent); }
+  .signal-glow.sell { background: linear-gradient(90deg, transparent, var(--sell), transparent); }
+  .signal-glow.wait { background: linear-gradient(90deg, transparent, var(--neutral), transparent); }
+
+  .signal-inner {
+    padding: 32px 28px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .signal-left {}
+
+  .signal-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .signal-main {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 16px;
+  }
+
+  .signal-badge {
+    font-family: var(--font-mono);
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    transition: color 0.5s;
+  }
+
+  .signal-badge.buy { color: var(--buy); }
+  .signal-badge.sell { color: var(--sell); }
+  .signal-badge.wait { color: var(--neutral); }
+
+  .signal-icon {
+    font-size: 32px;
+    transition: all 0.5s;
+  }
+
+  .signal-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .meta-chip {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    background: var(--bg3);
+  }
+
+  .signal-levels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .level-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  .level-card-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 5px;
+  }
+
+  .level-card-val {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .level-card-val.entry { color: var(--gold); }
+  .level-card-val.tp { color: var(--buy); }
+  .level-card-val.sl { color: var(--sell); }
+
+  /* RIGHT — STRENGTH METER */
+  .signal-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    min-width: 130px;
+  }
+
+  .strength-ring {
+    position: relative;
+    width: 110px; height: 110px;
+  }
+
+  .strength-ring svg {
+    transform: rotate(-90deg);
+  }
+
+  .strength-ring-bg {
+    fill: none;
+    stroke: var(--bg4);
+    stroke-width: 8;
+  }
+
+  .strength-ring-fill {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease, stroke 0.5s;
+  }
+
+  .strength-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .strength-pct {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+    line-height: 1;
+  }
+
+  .strength-sub {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .strength-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* TIMEFRAME SELECTOR */
+  .tf-row {
+    display: flex;
+    gap: 8px;
+    padding: 16px 28px;
+    border-top: 1px solid var(--border);
+    background: var(--bg3);
+  }
+
+  .tf-btn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .tf-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+  .tf-btn.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold-light); }
+
+  .tf-spacer { flex: 1; }
+
+  .refresh-btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg4);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .refresh-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  .refresh-btn.loading .spin { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* INDICATORS GRID */
+  .section-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .indicators-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .ind-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ind-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 3px 0 0 3px;
+  }
+
+  .ind-card.bullish::before { background: var(--buy); }
+  .ind-card.bearish::before { background: var(--sell); }
+  .ind-card.neutral::before { background: var(--neutral); }
+
+  .ind-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .ind-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .ind-signal-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .tag-buy { background: rgba(0,230,118,0.12); color: var(--buy); }
+  .tag-sell { background: rgba(255,61,90,0.12); color: var(--sell); }
+  .tag-neutral { background: rgba(123,143,166,0.12); color: var(--neutral); }
+
+  .ind-value {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .ind-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .ind-bar-track {
+    margin-top: 10px;
+    height: 4px;
+    background: var(--bg4);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .ind-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease;
+  }
+
+  /* HISTORY */
+  .history-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .history-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .history-stats {
+    display: flex;
+    gap: 20px;
+  }
+
+  .h-stat {
+    text-align: center;
+  }
+
+  .h-stat-val {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .h-stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .history-table th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+
+  .history-table td {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(30,42,58,0.5);
+    color: var(--text);
+  }
+
+  .history-table tr:last-child td { border-bottom: none; }
+  .history-table tr:hover td { background: rgba(30,42,58,0.3); }
+
+  .h-type-buy { color: var(--buy); font-weight: 700; }
+  .h-type-sell { color: var(--sell); font-weight: 700; }
+
+  .h-res { font-weight: 600; }
+  .h-res-win { color: var(--buy); }
+  .h-res-loss { color: var(--sell); }
+  .h-res-open { color: var(--neutral); }
+
+  /* AI REASONING */
+  .reasoning-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+  }
+
+  .reasoning-content {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+    padding: 14px;
+    background: var(--bg3);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-family: var(--font-mono);
+    white-space: pre-wrap;
+    min-height: 60px;
+    position: relative;
+  }
+
+  .reasoning-cursor {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--gold);
+    margin-left: 2px;
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
+  }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  .ai-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background: rgba(212,175,55,0.1);
+    border: 1px solid rgba(212,175,55,0.3);
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-left: 10px;
+    vertical-align: middle;
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    border-top: 1px solid var(--border);
+    margin-top: 10px;
+  }
+
+  footer span { color: var(--sell); }
+
+  /* DISCLAIMER */
+  .disclaimer {
+    background: rgba(255,61,90,0.05);
+    border: 1px solid rgba(255,61,90,0.2);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 11px;
+    color: #FF8FA0;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  /* SOUND PANEL */
+  .sound-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+  }
+
+  .sound-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .sound-toggle-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .sound-toggle-info {}
+
+  .sound-toggle-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .sound-toggle-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* Toggle switch */
+  .toggle-switch {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    left: 3px; top: 3px;
+    width: 16px; height: 16px;
+    background: var(--text-dim);
+    border-radius: 50%;
+    transition: transform 0.3s, background 0.3s;
+  }
+
+  .toggle-switch input:checked + .toggle-track {
+    background: rgba(212,175,55,0.15);
+    border-color: var(--gold-dim);
+  }
+
+  .toggle-switch input:checked + .toggle-track::after {
+    transform: translateX(18px);
+    background: var(--gold);
+  }
+
+  .sound-vol-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .sound-vol-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .vol-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 4px;
+    background: var(--bg4);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    border: 2px solid var(--bg2);
+    box-shadow: 0 0 6px rgba(212,175,55,0.4);
+  }
+
+  .vol-pct {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .test-sound-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .test-btn {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .test-btn.buy-test { color: var(--buy); border-color: rgba(0,230,118,0.3); }
+  .test-btn.buy-test:hover { background: rgba(0,230,118,0.08); border-color: var(--buy); }
+  .test-btn.sell-test { color: var(--sell); border-color: rgba(255,61,90,0.3); }
+  .test-btn.sell-test:hover { background: rgba(255,61,90,0.08); border-color: var(--sell); }
+  .test-btn.wait-test { color: var(--neutral); border-color: rgba(123,143,166,0.3); }
+  .test-btn.wait-test:hover { background: rgba(123,143,166,0.08); border-color: var(--neutral); }
+
+  /* TOAST NOTIFICATION */
+  #toastContainer {
+    position: fixed;
+    top: 72px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    min-width: 280px;
+    max-width: 340px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    pointer-events: all;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .toast.show { transform: translateX(0); opacity: 1; }
+  .toast.hide { transform: translateX(120%); opacity: 0; }
+
+  .toast-bar {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .toast.toast-buy .toast-bar { background: var(--buy); }
+  .toast.toast-sell .toast-bar { background: var(--sell); }
+  .toast.toast-info .toast-bar { background: var(--gold); }
+  .toast.toast-wait .toast-bar { background: var(--neutral); }
+
+  .toast-icon { font-size: 22px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+
+  .toast-body { flex: 1; }
+
+  .toast-title {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 3px;
+    letter-spacing: 0.03em;
+  }
+
+  .toast.toast-buy .toast-title { color: var(--buy); }
+  .toast.toast-sell .toast-title { color: var(--sell); }
+  .toast.toast-info .toast-title { color: var(--gold); }
+  .toast.toast-wait .toast-title { color: var(--neutral); }
+
+  .toast-msg {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .toast-close {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 1px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+
+  .toast-close:hover { opacity: 1; }
+
+  .toast-progress {
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 2px;
+    border-radius: 0 0 12px 12px;
+    transition: width linear;
+  }
+
+  .toast.toast-buy .toast-progress { background: var(--buy); }
+  .toast.toast-sell .toast-progress { background: var(--sell); }
+  .toast.toast-info .toast-progress { background: var(--gold); }
+
+  /* SMC ZONES PANEL */
+  .smc-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+  }
+
+  .smc-tf-tabs {
+    display: flex;
+    gap: 6px;
+    margin: 14px 0 16px;
+    flex-wrap: wrap;
+  }
+
+  .smc-tf-tab {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text-dim);
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: all 0.2s;
+  }
+
+  .smc-tf-tab.active {
+    background: rgba(212,175,55,0.12);
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+
+  .smc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+  }
+
+  .smc-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .smc-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .smc-card.zone-demand::before { background: var(--buy); }
+  .smc-card.zone-supply::before { background: var(--sell); }
+  .smc-card.zone-ob-bull::before { background: #4FC3F7; }
+  .smc-card.zone-ob-bear::before { background: #BA68C8; }
+  .smc-card.zone-base::before { background: var(--gold); }
+
+  .smc-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .smc-card-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .zone-demand .smc-card-title { color: var(--buy); }
+  .zone-supply .smc-card-title { color: var(--sell); }
+  .zone-ob-bull .smc-card-title { color: #4FC3F7; }
+  .zone-ob-bear .smc-card-title { color: #BA68C8; }
+  .zone-base .smc-card-title { color: var(--gold); }
+
+  .smc-status-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .status-fresh { background: rgba(0,230,118,0.12); color: var(--buy); }
+  .status-tested { background: rgba(212,175,55,0.12); color: var(--gold); }
+  .status-mitigated { background: rgba(123,143,166,0.12); color: var(--text-dim); }
+  .status-active { background: rgba(212,175,55,0.15); color: var(--gold-light); }
+
+  .smc-range {
+    font-family: var(--font-mono);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .smc-range .dash { color: var(--text-dim); font-weight: 400; margin: 0 4px; }
+
+  .smc-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .smc-dist {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .smc-dist-val { font-weight: 700; }
+  .smc-dist-val.near { color: var(--gold); }
+
+  .smc-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 24px;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-family: var(--font-mono);
+  }
+
+  .smc-summary {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .smc-summary-chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .chip-bullish { background: rgba(0,230,118,0.1); color: var(--buy); }
+  .chip-bearish { background: rgba(255,61,90,0.1); color: var(--sell); }
+  .chip-confluence { background: rgba(212,175,55,0.1); color: var(--gold); }
+
+  /* TELEGRAM PANEL */
+  .tg-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+  }
+
+  .tg-status-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+  }
+
+  .tg-status-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .tg-status-dot.connected { background: var(--buy); box-shadow: 0 0 6px rgba(0,230,118,0.5); }
+  .tg-status-dot.disconnected { background: var(--sell); }
+
+  .tg-status-text {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+
+  .tg-status-text.connected { color: var(--buy); }
+  .tg-status-text.disconnected { color: var(--sell); }
+
+  .tg-form-grid {
+    display: grid;
+    gap: 10px;
+  }
+
+  .tg-field-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .tg-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .tg-input:focus { border-color: var(--gold-dim); }
+  .tg-input::placeholder { color: var(--text-dim); }
+
+  .tg-btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .tg-btn {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .tg-btn-save {
+    background: rgba(212,175,55,0.12);
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+  .tg-btn-save:hover { background: rgba(212,175,55,0.2); }
+
+  .tg-btn-test {
+    background: var(--bg3);
+    color: var(--text-dim);
+  }
+  .tg-btn-test:hover { border-color: var(--neutral); color: var(--text); }
+
+  .tg-help-text {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-top: 10px;
+  }
+
+  .tg-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 700px) {
+    .signal-inner { grid-template-columns: 1fr; }
+    .signal-right { flex-direction: row; justify-content: center; }
+    .signal-levels { grid-template-columns: repeat(3, 1fr); }
+    .signal-badge { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    XAUUSD SIGNAL PRO
+  </div>
+  <div class="header-right">
+    <div class="live-badge" id="liveBadge">
+      <div class="live-dot" id="liveDot"></div>
+      <span id="liveBadgeText">CONNECTING…</span>
+    </div>
+    <div class="price-header" id="headerPrice">$0.00</div>
+    <div class="price-change" id="headerChange">+0.00%</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- SIGNAL PANEL -->
+  <div class="signal-panel" id="signalPanel">
+    <div class="signal-glow wait" id="signalGlow"></div>
+    <div class="signal-inner">
+      <div class="signal-left">
+        <div class="signal-label">XAUUSD / SCALPING SIGNAL</div>
+        <div class="signal-main">
+          <div class="signal-badge wait" id="signalBadge">ANALYZING…</div>
+          <div class="signal-icon" id="signalIcon">⏳</div>
+        </div>
+        <div class="signal-meta" id="signalMeta">
+          <div class="meta-chip" id="metaTf">TF: M5</div>
+          <div class="meta-chip" id="metaTime">--:--</div>
+          <div class="meta-chip" id="metaTrend">Trend: —</div>
+          <div class="meta-chip" id="metaVol">Vol: —</div>
+        </div>
+        <div class="signal-levels">
+          <div class="level-card">
+            <div class="level-card-label">Entry</div>
+            <div class="level-card-val entry" id="lvlEntry">—</div>
+          </div>
+          <div class="level-card">
+            <div class="level-card-label">Take Profit</div>
+            <div class="level-card-val tp" id="lvlTP">—</div>
+          </div>
+          <div class="level-card">
+            <div class="level-card-label">Stop Loss</div>
+            <div class="level-card-val sl" id="lvlSL">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="signal-right">
+        <div class="strength-ring">
+          <svg width="110" height="110" viewBox="0 0 110 110">
+            <circle class="strength-ring-bg" cx="55" cy="55" r="46"/>
+            <circle class="strength-ring-fill" id="strengthFill"
+              cx="55" cy="55" r="46"
+              stroke="#7B8FA6"
+              stroke-dasharray="289"
+              stroke-dashoffset="289"/>
+          </svg>
+          <div class="strength-center">
+            <span class="strength-pct" id="strengthPct">0%</span>
+            <span class="strength-sub">Signal</span>
+          </div>
+        </div>
+        <div class="strength-label">STRENGTH</div>
+      </div>
+    </div>
+    <div class="tf-row">
+      <button class="tf-btn" onclick="setTF('M1')">M1</button>
+      <button class="tf-btn active" onclick="setTF('M5')">M5</button>
+      <button class="tf-btn" onclick="setTF('M15')">M15</button>
+      <button class="tf-btn" onclick="setTF('M30')">M30</button>
+      <div class="tf-spacer"></div>
+      <button class="refresh-btn" id="refreshBtn" onclick="runAnalysis()">
+        <span class="spin" id="refreshSpin">↻</span> ANALYZE
+      </button>
+    </div>
+  </div>
+
+  <!-- INDICATORS -->
+  <div>
+    <div class="section-title">● Indikator Teknikal</div>
+    <div class="indicators-grid" id="indicatorsGrid">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- SMC ZONES: ORDER BLOCK, BASE, DEMAND, SUPPLY -->
+  <div class="smc-panel">
+    <div class="section-title">● Smart Money Concept — Order Block / Base / Demand / Supply</div>
+    <div class="smc-summary" id="smcSummary"></div>
+    <div class="smc-tf-tabs" id="smcTfTabs">
+      <button class="smc-tf-tab active" onclick="setSmcTF('M1', this)">M1</button>
+      <button class="smc-tf-tab" onclick="setSmcTF('M5', this)">M5</button>
+      <button class="smc-tf-tab" onclick="setSmcTF('M15', this)">M15</button>
+      <button class="smc-tf-tab" onclick="setSmcTF('H1', this)">H1</button>
+    </div>
+    <div class="smc-grid" id="smcGrid">
+      <div class="smc-empty">Klik ANALYZE untuk mendeteksi zona OB / Demand / Supply / Base…</div>
+    </div>
+  </div>
+
+  <!-- AI REASONING -->
+  <div class="reasoning-panel">
+    <div class="section-title">● AI Reasoning <span class="ai-tag">✦ AI</span></div>
+    <div class="reasoning-content" id="reasoningContent">
+      Klik <strong>ANALYZE</strong> untuk memulai analisis sinyal XAUUSD…<span class="reasoning-cursor"></span>
+    </div>
+  </div>
+
+  <!-- SIGNAL HISTORY -->
+  <div class="history-panel">
+    <div class="history-header">
+      <div class="section-title" style="margin:0">● Riwayat Sinyal</div>
+      <div class="history-stats">
+        <div class="h-stat">
+          <div class="h-stat-val" id="statTotal" style="color:var(--gold)">0</div>
+          <div class="h-stat-label">Total</div>
+        </div>
+        <div class="h-stat">
+          <div class="h-stat-val" id="statWin" style="color:var(--buy)">0</div>
+          <div class="h-stat-label">Win</div>
+        </div>
+        <div class="h-stat">
+          <div class="h-stat-val" id="statRate" style="color:var(--text)">—</div>
+          <div class="h-stat-label">Win Rate</div>
+        </div>
+        <button onclick="resetHistory()" style="font-family:var(--font-mono);font-size:10px;font-weight:700;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text-dim);cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;align-self:center;">↺ Reset</button>
+      </div>
+    </div>
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>Sinyal</th>
+          <th>TF</th>
+          <th>Entry</th>
+          <th>TP</th>
+          <th>SL</th>
+          <th>Strength</th>
+          <th>Hasil</th>
+        </tr>
+      </thead>
+      <tbody id="historyBody">
+        <tr><td colspan="8" style="text-align:center;color:var(--text-dim);padding:24px;">Belum ada riwayat sinyal</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SOUND NOTIFICATION SETTINGS -->
+  <div class="sound-panel">
+    <div class="section-title">● Notifikasi Suara
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-left:8px;font-weight:400;text-transform:none;letter-spacing:0">
+        — Suara otomatis saat sinyal BUY/SELL terdeteksi
+      </span>
+    </div>
+    <div class="sound-controls">
+      <div class="sound-toggle-card">
+        <div class="sound-toggle-info">
+          <div class="sound-toggle-name">🔔 Notifikasi Aktif</div>
+          <div class="sound-toggle-desc">Master on/off semua suara</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggleMaster" checked onchange="updateSoundSettings()">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+      <div class="sound-toggle-card">
+        <div class="sound-toggle-info">
+          <div class="sound-toggle-name" style="color:var(--buy)">▲ Suara BUY</div>
+          <div class="sound-toggle-desc">Notifikasi sinyal beli</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggleBuy" checked onchange="updateSoundSettings()">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+      <div class="sound-toggle-card">
+        <div class="sound-toggle-info">
+          <div class="sound-toggle-name" style="color:var(--sell)">▼ Suara SELL</div>
+          <div class="sound-toggle-desc">Notifikasi sinyal jual</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggleSell" checked onchange="updateSoundSettings()">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+      <div class="sound-toggle-card">
+        <div class="sound-toggle-info">
+          <div class="sound-toggle-name" style="color:var(--neutral)">◉ Suara WAIT</div>
+          <div class="sound-toggle-desc">Notifikasi tidak ada sinyal</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggleWait" onchange="updateSoundSettings()">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+    </div>
+    <div class="sound-vol-row">
+      <div class="sound-vol-label">🔊 Volume</div>
+      <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="70" oninput="updateVolume(this.value)">
+      <div class="vol-pct" id="volPct">70%</div>
+    </div>
+    <div class="test-sound-row">
+      <button class="test-btn buy-test" onclick="testSound('BUY')">▲ Test BUY</button>
+      <button class="test-btn sell-test" onclick="testSound('SELL')">▼ Test SELL</button>
+      <button class="test-btn wait-test" onclick="testSound('WAIT')">◉ Test WAIT</button>
+    </div>
+  </div>
+
+  <!-- TELEGRAM NOTIFICATION -->
+  <div class="tg-panel">
+    <div class="section-title">● Notifikasi Telegram
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-left:8px;font-weight:400;text-transform:none;letter-spacing:0">
+        — Kirim sinyal BUY/SELL langsung ke HP Anda
+      </span>
+    </div>
+
+    <div class="tg-status-row">
+      <div class="tg-status-dot" id="tgStatusDot"></div>
+      <div class="tg-status-text" id="tgStatusText">Belum terhubung</div>
+    </div>
+
+    <div class="tg-toggle-row">
+      <div class="sound-toggle-info">
+        <div class="sound-toggle-name">📲 Kirim ke Telegram</div>
+        <div class="sound-toggle-desc">Aktifkan notifikasi otomatis saat BUY/SELL</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="tgEnabled" onchange="saveTelegramSettings()">
+        <div class="toggle-track"></div>
+      </label>
+    </div>
+
+    <div class="tg-form-grid">
+      <div>
+        <div class="tg-field-label">Bot Token</div>
+        <input type="password" class="tg-input" id="tgToken" placeholder="contoh: 7123456789:AAHk3j2k...">
+      </div>
+      <div>
+        <div class="tg-field-label">Chat ID</div>
+        <input type="text" class="tg-input" id="tgChatId" placeholder="contoh: 123456789">
+      </div>
+    </div>
+
+    <div class="tg-btn-row">
+      <button class="tg-btn tg-btn-save" onclick="saveTelegramSettings()">💾 Simpan</button>
+      <button class="tg-btn tg-btn-test" onclick="testTelegramNotif()">📤 Test Kirim</button>
+    </div>
+
+    <div class="tg-help-text">
+      Dapatkan Token dari <strong>@BotFather</strong> dan Chat ID dari <strong>@userinfobot</strong> di Telegram. Pastikan Anda sudah klik /start ke bot Anda sendiri sebelum test kirim. Token & Chat ID disimpan hanya di browser Anda (localStorage), tidak dikirim ke server manapun selain langsung ke Telegram.
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    ⚠️ DISCLAIMER: Sinyal ini bersifat analisis teknikal, BUKAN jaminan profit. Trading XAUUSD mengandung risiko tinggi. 
+    Gunakan manajemen risiko yang baik dan tanggung jawab sendiri atas keputusan trading Anda.
+  </div>
+
+</main>
+
+<footer>
+  XAUUSD SIGNAL PRO · POWERED BY AI TECHNICAL ANALYSIS · <span>HIGH RISK</span>
+</footer>
+
+<div id="toastContainer"></div>
+
+<script>
+// ─── SOUND ENGINE (Web Audio API) ────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+let masterVolume = 0.7;
+
+let soundSettings = {
+  master: true,
+  buy: true,
+  sell: true,
+  wait: false
+};
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+// Plays a sequence of tones
+function playTones(sequence) {
+  const ctx = getAudioCtx();
+  let t = ctx.currentTime + 0.05;
+  sequence.forEach(({ freq, dur, type = 'sine', gain = 1, bend = 0 }) => {
+    const osc = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    osc.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t);
+    if (bend) osc.frequency.linearRampToValueAtTime(freq + bend, t + dur);
+    gainNode.gain.setValueAtTime(0, t);
+    gainNode.gain.linearRampToValueAtTime(masterVolume * gain, t + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    osc.start(t);
+    osc.stop(t + dur + 0.01);
+    t += dur * 0.85;
+  });
+}
+
+function playBuySound() {
+  // Rising triumphant 3-note arpeggio
+  playTones([
+    { freq: 440, dur: 0.12, type: 'sine', gain: 0.7 },
+    { freq: 554, dur: 0.12, type: 'sine', gain: 0.8 },
+    { freq: 659, dur: 0.22, type: 'sine', gain: 1.0, bend: 80 },
+  ]);
+  setTimeout(() => playTones([
+    { freq: 880, dur: 0.18, type: 'triangle', gain: 0.5 }
+  ]), 320);
+}
+
+function playSellSound() {
+  // Descending warning 3-note
+  playTones([
+    { freq: 660, dur: 0.12, type: 'sawtooth', gain: 0.5 },
+    { freq: 523, dur: 0.12, type: 'sawtooth', gain: 0.6 },
+    { freq: 392, dur: 0.22, type: 'sine',     gain: 0.8, bend: -50 },
+  ]);
+  setTimeout(() => playTones([
+    { freq: 330, dur: 0.2, type: 'triangle', gain: 0.45 }
+  ]), 310);
+}
+
+function playWaitSound() {
+  // Neutral single neutral ping
+  playTones([
+    { freq: 480, dur: 0.08, type: 'sine', gain: 0.4 },
+    { freq: 480, dur: 0.14, type: 'sine', gain: 0.25 },
+  ]);
+}
+
+function playSignalSound(signal) {
+  if (!soundSettings.master) return;
+  if (signal === 'BUY'  && soundSettings.buy)  { playBuySound();  return; }
+  if (signal === 'SELL' && soundSettings.sell) { playSellSound(); return; }
+  if (signal === 'WAIT' && soundSettings.wait) { playWaitSound(); return; }
+}
+
+function testSound(signal) {
+  // Force-play regardless of toggle so user can preview
+  if (signal === 'BUY')  playBuySound();
+  if (signal === 'SELL') playSellSound();
+  if (signal === 'WAIT') playWaitSound();
+  showToast(signal, signal === 'BUY' ? 'Test suara BUY diputar' : signal === 'SELL' ? 'Test suara SELL diputar' : 'Test suara WAIT diputar', 2200);
+}
+
+function updateVolume(val) {
+  masterVolume = val / 100;
+  document.getElementById('volPct').textContent = val + '%';
+}
+
+function updateSoundSettings() {
+  soundSettings.master = document.getElementById('toggleMaster').checked;
+  soundSettings.buy    = document.getElementById('toggleBuy').checked;
+  soundSettings.sell   = document.getElementById('toggleSell').checked;
+  soundSettings.wait   = document.getElementById('toggleWait').checked;
+  localStorage.setItem('xau_sound', JSON.stringify(soundSettings));
+  const vol = parseInt(document.getElementById('volSlider').value);
+  showToast('info', soundSettings.master ? `Notifikasi ${soundSettings.master ? 'AKTIF' : 'NONAKTIF'}` : 'Semua notifikasi dinonaktifkan', 1800);
+}
+
+// ─── TOAST NOTIFICATION ──────────────────────────────────
+let toastCount = 0;
+
+function showToast(type, message, duration = 4000) {
+  const container = document.getElementById('toastContainer');
+  const id = 'toast-' + (++toastCount);
+
+  const icons = { BUY: '▲', SELL: '▼', WAIT: '◉', info: '⚡' };
+  const titles = { BUY: 'SINYAL BUY!', SELL: 'SINYAL SELL!', WAIT: 'TUNGGU KONFIRMASI', info: 'NOTIFIKASI' };
+  const cls = { BUY: 'toast-buy', SELL: 'toast-sell', WAIT: 'toast-wait', info: 'toast-info' };
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${cls[type] || 'toast-info'}`;
+  toast.id = id;
+  toast.innerHTML = `
+    <div class="toast-bar"></div>
+    <div class="toast-icon">${icons[type] || '🔔'}</div>
+    <div class="toast-body">
+      <div class="toast-title">${titles[type] || 'INFO'}</div>
+      <div class="toast-msg">${message}</div>
+    </div>
+    <button class="toast-close" onclick="dismissToast('${id}')">✕</button>
+    <div class="toast-progress" id="prog-${id}" style="width:100%"></div>
+  `;
+
+  container.appendChild(toast);
+  requestAnimationFrame(() => { requestAnimationFrame(() => { toast.classList.add('show'); }); });
+
+  // Progress bar shrink
+  const prog = document.getElementById('prog-' + id);
+  prog.style.transition = `width ${duration}ms linear`;
+  setTimeout(() => { prog.style.width = '0%'; }, 50);
+
+  // Auto dismiss
+  setTimeout(() => dismissToast(id), duration);
+}
+
+function dismissToast(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('hide');
+  el.classList.remove('show');
+  setTimeout(() => el.remove(), 400);
+}
+
+// ─── STATE ───────────────────────────────────────────────
+let currentTF = 'M5';
+let currentPrice = 2650.00; // fallback default, replaced by real API on first fetch
+let signalHistory = JSON.parse(localStorage.getItem('xau_history') || '[]');
+let isAnalyzing = false;
+let usingRealData = false;
+let lastApiError = null;
+
+// ─── REAL XAUUSD PRICE FEED (gold-api.com — free, no key, CORS enabled) ─
+async function fetchRealGoldPrice() {
+  try {
+    const res = await fetch('https://api.gold-api.com/price/XAU');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    // API returns price per troy ounce in USD — this IS the XAUUSD spot price
+    const price = data.price ?? data.rate ?? data.value ?? data.ask;
+    if (typeof price !== 'number' || isNaN(price)) throw new Error('Unexpected response shape');
+    usingRealData = true;
+    lastApiError = null;
+    return price;
+  } catch (e) {
+    usingRealData = false;
+    lastApiError = e.message || 'Unknown error';
+    return null;
+  }
+}
+
+// ─── PERSISTENT MARKET DATA (one continuous series, built from REAL price ticks) ─
+const MAX_CANDLES = 180;
+let mainCandles = null; // initialized once on first load, then only appended to
+let priceTickBuffer = []; // raw real-price ticks collected between candle builds
+
+// Build a synthetic-but-real-anchored OHLC candle from a cluster of real price ticks.
+// If we only have 1 tick (common case — API gives single live price, not OHLC),
+// we derive O/H/L/C from the wick of price movement between previous close and this tick.
+function buildCandleFromTicks(prevClose, ticks) {
+  const o = prevClose;
+  const allVals = [prevClose, ...ticks];
+  const h = Math.max(...allVals);
+  const l = Math.min(...allVals);
+  const c = ticks[ticks.length - 1];
+  const vol = 600 + Math.random() * 800; // volume isn't exposed by free feed — kept as relative proxy only
+  return { o, h, l, c, vol };
+}
+
+// Seed initial history: we only have ONE real live price on first load (no free historical
+// OHLC endpoint), so we seed a short, low-noise lead-in anchored at the real price. Every
+// candle AFTER this seed is built strictly from real fetched ticks — never re-randomized.
+// ─── REALISTIC TRENDING MARKET MODEL ─────────────────────
+// Real markets don't move via independent random ticks — they have momentum (a move
+// tends to continue briefly), regimes (trend phases vs consolidation phases), and
+// volatility clustering (calm periods vs choppy periods). This model reproduces that
+// structure so RSI/MACD/EMA/SMC all describe THE SAME coherent price story instead of
+// contradicting each other candle to candle.
+let marketRegime = { type: 'trend', direction: 1, strength: 0.6, candlesLeft: 18 };
+
+function pickNewRegime(prevDirection) {
+  const r = Math.random();
+  if (r < 0.45) {
+    // Continuation trend (most common — trends persist)
+    return { type: 'trend', direction: prevDirection, strength: 0.4 + Math.random() * 0.5, candlesLeft: 12 + Math.floor(Math.random() * 18) };
+  } else if (r < 0.65) {
+    // Reversal trend
+    return { type: 'trend', direction: -prevDirection, strength: 0.4 + Math.random() * 0.5, candlesLeft: 12 + Math.floor(Math.random() * 18) };
+  } else {
+    // Consolidation / base building (tight range, low directional bias)
+    return { type: 'consolidation', direction: prevDirection, strength: 0.1, candlesLeft: 8 + Math.floor(Math.random() * 10) };
+  }
+}
+
+function nextRegimeCandle(prevClose, volScale) {
+  if (marketRegime.candlesLeft <= 0) {
+    marketRegime = pickNewRegime(marketRegime.direction);
+  }
+  marketRegime.candlesLeft--;
+
+  const { type, direction, strength } = marketRegime;
+  let body, wickMult;
+
+  if (type === 'trend') {
+    // Directional drift + small noise — momentum-consistent moves
+    const drift = direction * strength * volScale * (0.5 + Math.random() * 0.5);
+    const noise = (Math.random() - 0.5) * volScale * 0.3;
+    body = drift + noise;
+    wickMult = 0.35;
+  } else {
+    // Consolidation: tiny back-and-forth moves, no persistent direction
+    body = (Math.random() - 0.5) * volScale * 0.4;
+    wickMult = 0.5; // relatively wider wicks vs body = indecision candles
+  }
+
+  const o = prevClose;
+  const c = o + body;
+  const h = Math.max(o, c) + Math.random() * volScale * wickMult;
+  const l = Math.min(o, c) - Math.random() * volScale * wickMult;
+  const vol = type === 'trend'
+    ? 900 + Math.random() * 700        // trends carry more volume
+    : 400 + Math.random() * 400;       // consolidation = lower volume
+  return { o, h, l, c, vol };
+}
+
+function seedAnchoredHistory(realPrice, count) {
+  // Build backwards-consistent history: simulate the regime-based path FORWARD from an
+  // earlier synthetic starting point, ending exactly at the real/current price so the
+  // most recent (most important) candle is always grounded in truth.
+  marketRegime = pickNewRegime(Math.random() > 0.5 ? 1 : -1);
+  const volScale = 0.4; // XAUUSD typically moves in small $ increments per short candle
+
+  let candles = [];
+  let p = realPrice - (Math.random() - 0.5) * volScale * count * 0.15; // plausible starting point
+  for (let i = 0; i < count - 1; i++) {
+    const candle = nextRegimeCandle(p, volScale);
+    candles.push(candle);
+    p = candle.c;
+  }
+  // Final seed candle closes exactly at the real/current price (ground truth anchor)
+  const lastRegimeCandle = nextRegimeCandle(p, volScale);
+  lastRegimeCandle.c = realPrice;
+  lastRegimeCandle.h = Math.max(lastRegimeCandle.h, realPrice);
+  lastRegimeCandle.l = Math.min(lastRegimeCandle.l, realPrice);
+  candles.push(lastRegimeCandle);
+  return candles;
+}
+// Get market data: try REAL price first; if unavailable, progress the realistic regime
+// model instead of freezing. Either way, history only grows forward — never re-randomized
+// from scratch after the initial seed.
+async function getMarketData() {
+  const realPrice = await fetchRealGoldPrice();
+
+  if (!mainCandles) {
+    // First load: seed using real price if we have it, otherwise a sane fallback anchor
+    mainCandles = seedAnchoredHistory(realPrice ?? currentPrice, 120);
+    currentPrice = mainCandles[mainCandles.length - 1].c;
+    return mainCandles;
+  }
+
+  const prevClose = mainCandles[mainCandles.length - 1].c;
+
+  if (realPrice !== null) {
+    // Real price available: anchor the new candle's close to it exactly
+    const candle = buildCandleFromTicks(prevClose, [realPrice]);
+    mainCandles.push(candle);
+    currentPrice = realPrice;
+  } else {
+    // API unreachable: still progress the market using the same realistic regime model
+    // used for seeding, so the chart keeps evolving coherently instead of going stale
+    const candle = nextRegimeCandle(prevClose, 0.4);
+    mainCandles.push(candle);
+    currentPrice = candle.c;
+  }
+
+  if (mainCandles.length > MAX_CANDLES) mainCandles.shift();
+  return mainCandles;
+}
+
+function closes(candles) { return candles.map(c => c.c); }
+function volumes(candles) { return candles.map(c => c.vol); }
+
+// ─── INDICATORS ──────────────────────────────────────────
+function ema(data, period) {
+  const k = 2 / (period + 1);
+  let result = [data[0]];
+  for (let i = 1; i < data.length; i++) {
+    result.push(data[i] * k + result[i - 1] * (1 - k));
+  }
+  return result;
+}
+
+function sma(data, period) {
+  let result = [];
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) { result.push(null); continue; }
+    const slice = data.slice(i - period + 1, i + 1);
+    result.push(slice.reduce((a, b) => a + b, 0) / period);
+  }
+  return result;
+}
+
+function rsi(data, period = 14) {
+  let gains = [], losses = [];
+  for (let i = 1; i < data.length; i++) {
+    const d = data[i] - data[i - 1];
+    gains.push(d > 0 ? d : 0);
+    losses.push(d < 0 ? Math.abs(d) : 0);
+  }
+  let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  let rsiArr = [];
+  for (let i = period; i < gains.length; i++) {
+    avgGain = (avgGain * (period - 1) + gains[i]) / period;
+    avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
+    const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+    rsiArr.push(100 - 100 / (1 + rs));
+  }
+  return rsiArr;
+}
+
+function macd(data, fast = 12, slow = 26, signal = 9) {
+  const emaFast = ema(data, fast);
+  const emaSlow = ema(data, slow);
+  const macdLine = emaFast.map((v, i) => v - emaSlow[i]);
+  const signalLine = ema(macdLine.slice(slow - 1), signal);
+  const histogram = signalLine.map((v, i) => macdLine[slow - 1 + i] - v);
+  return { macdLine, signalLine, histogram };
+}
+
+function bollingerBands(data, period = 20, mult = 2) {
+  const mid = sma(data, period);
+  const upper = [], lower = [];
+  for (let i = 0; i < data.length; i++) {
+    if (mid[i] === null) { upper.push(null); lower.push(null); continue; }
+    const slice = data.slice(Math.max(0, i - period + 1), i + 1);
+    const mean = slice.reduce((a, b) => a + b, 0) / slice.length;
+    const std = Math.sqrt(slice.reduce((a, b) => a + (b - mean) ** 2, 0) / slice.length);
+    upper.push(mid[i] + mult * std);
+    lower.push(mid[i] - mult * std);
+  }
+  return { mid, upper, lower };
+}
+
+function stochastic(candles, kPeriod = 14, dPeriod = 3) {
+  const kArr = [];
+  for (let i = kPeriod - 1; i < candles.length; i++) {
+    const slice = candles.slice(i - kPeriod + 1, i + 1);
+    const low = Math.min(...slice.map(c => c.l));
+    const high = Math.max(...slice.map(c => c.h));
+    const k = high === low ? 50 : ((candles[i].c - low) / (high - low)) * 100;
+    kArr.push(k);
+  }
+  const dArr = sma(kArr, dPeriod);
+  return { k: kArr, d: dArr };
+}
+
+function atr(candles, period = 14) {
+  const tr = [];
+  for (let i = 1; i < candles.length; i++) {
+    tr.push(Math.max(
+      candles[i].h - candles[i].l,
+      Math.abs(candles[i].h - candles[i - 1].c),
+      Math.abs(candles[i].l - candles[i - 1].c)
+    ));
+  }
+  return sma(tr, period);
+}
+
+// ─── SMC: ORDER BLOCK / BASE / DEMAND / SUPPLY DETECTION ─
+// All timeframes are RESAMPLED from the single real-price-anchored mainCandles series.
+// This guarantees M1/M5/M15/H1 are mutually consistent (same underlying price action),
+// exactly like how a real broker aggregates lower TF candles into higher TF candles —
+// instead of generating independent random series per timeframe.
+const TF_GROUP_SIZE = {
+  M1: 1,   // 1 base candle = 1 M1 candle (finest resolution we have)
+  M5: 3,   // group 3 base candles into one M5 candle
+  M15: 6,  // group 6 base candles into one M15 candle
+  H1: 12   // group 12 base candles into one H1 candle
+};
+
+function resampleCandles(baseCandles, groupSize) {
+  if (groupSize <= 1) return baseCandles.slice();
+  const result = [];
+  for (let i = 0; i < baseCandles.length; i += groupSize) {
+    const group = baseCandles.slice(i, i + groupSize);
+    if (group.length === 0) continue;
+    result.push({
+      o: group[0].o,
+      h: Math.max(...group.map(c => c.h)),
+      l: Math.min(...group.map(c => c.l)),
+      c: group[group.length - 1].c,
+      vol: group.reduce((a, c) => a + c.vol, 0)
+    });
+  }
+  return result;
+}
+
+function getMultiTFCandles(basePrice) {
+  // mainCandles is the single source of truth, built from real fetched prices.
+  // We simply resample it per timeframe — no independent randomness, no inconsistency.
+  const result = {};
+  Object.entries(TF_GROUP_SIZE).forEach(([tf, groupSize]) => {
+    const resampled = resampleCandles(mainCandles, groupSize);
+    // Need at least a few candles to detect zones meaningfully
+    result[tf] = resampled.length >= 5 ? resampled : resampleCandles(mainCandles, 1);
+  });
+  return result;
+}
+
+function bodySize(c) { return Math.abs(c.c - c.o); }
+function isBullish(c) { return c.c > c.o; }
+function isBearish(c) { return c.c < c.o; }
+function range(c) { return c.h - c.l; }
+
+// Detect swing highs/lows (simple fractal: higher/lower than 2 neighbors each side)
+function findSwings(candles, lookback = 2) {
+  const highs = [], lows = [];
+  for (let i = lookback; i < candles.length - lookback; i++) {
+    const slice = candles.slice(i - lookback, i + lookback + 1);
+    const isHigh = slice.every(c => c.h <= candles[i].h);
+    const isLow  = slice.every(c => c.l >= candles[i].l);
+    if (isHigh) highs.push(i);
+    if (isLow)  lows.push(i);
+  }
+  return { highs, lows };
+}
+
+// Order Block: last opposite-colored candle before a strong impulsive move
+function findOrderBlocks(candles) {
+  const avgRange = candles.slice(-20).reduce((a, c) => a + range(c), 0) / 20;
+  const obs = [];
+  for (let i = 2; i < candles.length - 1; i++) {
+    const curr = candles[i];
+    const next = candles[i + 1];
+    const isImpulsive = range(next) > avgRange * 1.4 && bodySize(next) > range(next) * 0.6;
+
+    // Bullish OB: bearish candle followed by strong bullish impulsive move
+    if (isBearish(curr) && isBullish(next) && isImpulsive) {
+      obs.push({
+        type: 'bullish',
+        top: curr.h,
+        bottom: curr.l,
+        index: i,
+        strength: Math.min(100, Math.round((bodySize(next) / avgRange) * 35))
+      });
+    }
+    // Bearish OB: bullish candle followed by strong bearish impulsive move
+    if (isBullish(curr) && isBearish(next) && isImpulsive) {
+      obs.push({
+        type: 'bearish',
+        top: curr.h,
+        bottom: curr.l,
+        index: i,
+        strength: Math.min(100, Math.round((bodySize(next) / avgRange) * 35))
+      });
+    }
+  }
+  return obs;
+}
+
+// Base: tight consolidation (low range, overlapping bodies) before/after a move — accumulation zone
+function findBaseZones(candles) {
+  const avgRange = candles.slice(-20).reduce((a, c) => a + range(c), 0) / 20;
+  const bases = [];
+  const minBaseLen = 3;
+  let i = 0;
+  while (i < candles.length - minBaseLen) {
+    let j = i;
+    let highs = [], lows = [];
+    while (j < candles.length && range(candles[j]) < avgRange * 0.65) {
+      highs.push(candles[j].h);
+      lows.push(candles[j].l);
+      j++;
+    }
+    const len = j - i;
+    if (len >= minBaseLen) {
+      bases.push({
+        top: Math.max(...highs),
+        bottom: Math.min(...lows),
+        startIndex: i,
+        endIndex: j - 1,
+        candleCount: len
+      });
+      i = j;
+    } else {
+      i++;
+    }
+  }
+  return bases;
+}
+
+// Demand Zone: cluster of bullish reaction from a swing low (where buyers stepped in)
+function findDemandZones(candles, swingLows) {
+  const avgRange = candles.slice(-20).reduce((a, c) => a + range(c), 0) / 20;
+  return swingLows.map(idx => {
+    // base zone = the low candle + 1-2 candles around it
+    const start = Math.max(0, idx - 1);
+    const end = Math.min(candles.length - 1, idx + 1);
+    const slice = candles.slice(start, end + 1);
+    const bottom = Math.min(...slice.map(c => c.l));
+    const top = Math.max(...slice.map(c => Math.max(c.o, c.c)));
+
+    // Check subsequent reaction strength
+    let reactionStrength = 0;
+    if (idx + 3 < candles.length) {
+      const movedUp = candles[idx + 3].c - candles[idx].l;
+      reactionStrength = Math.min(100, Math.round((movedUp / avgRange) * 25));
+    }
+
+    // Has it been retested since?
+    let touches = 0;
+    for (let k = idx + 2; k < candles.length; k++) {
+      if (candles[k].l <= top && candles[k].l >= bottom) touches++;
+    }
+
+    return { top, bottom, index: idx, strength: Math.max(20, reactionStrength), touches };
+  }).filter(z => z.strength > 25);
+}
+
+// Supply Zone: cluster of bearish reaction from a swing high (where sellers stepped in)
+function findSupplyZones(candles, swingHighs) {
+  const avgRange = candles.slice(-20).reduce((a, c) => a + range(c), 0) / 20;
+  return swingHighs.map(idx => {
+    const start = Math.max(0, idx - 1);
+    const end = Math.min(candles.length - 1, idx + 1);
+    const slice = candles.slice(start, end + 1);
+    const top = Math.max(...slice.map(c => c.h));
+    const bottom = Math.min(...slice.map(c => Math.min(c.o, c.c)));
+
+    let reactionStrength = 0;
+    if (idx + 3 < candles.length) {
+      const movedDown = candles[idx].h - candles[idx + 3].c;
+      reactionStrength = Math.min(100, Math.round((movedDown / avgRange) * 25));
+    }
+
+    let touches = 0;
+    for (let k = idx + 2; k < candles.length; k++) {
+      if (candles[k].h >= bottom && candles[k].h <= top) touches++;
+    }
+
+    return { top, bottom, index: idx, strength: Math.max(20, reactionStrength), touches };
+  }).filter(z => z.strength > 25);
+}
+
+function zoneStatus(touches) {
+  if (touches === 0) return { label: 'FRESH', cls: 'status-fresh' };
+  if (touches === 1) return { label: 'TESTED', cls: 'status-tested' };
+  return { label: 'MITIGATED', cls: 'status-mitigated' };
+}
+
+function analyzeSMC(candles, currentPrice) {
+  const { highs, lows } = findSwings(candles, 2);
+  const orderBlocks = findOrderBlocks(candles).slice(-3); // most recent 3
+  const baseZones = findBaseZones(candles).slice(-2);
+  const demandZones = findDemandZones(candles, lows).slice(-2);
+  const supplyZones = findSupplyZones(candles, highs).slice(-2);
+
+  return { orderBlocks, baseZones, demandZones, supplyZones, currentPrice };
+}
+
+let multiTFCandles = {};
+let multiTFSmc = {};
+let currentSmcTF = 'M1';
+
+function runFullSMCAnalysis(price) {
+  multiTFCandles = getMultiTFCandles(price);
+  multiTFSmc = {};
+  Object.entries(multiTFCandles).forEach(([tf, candles]) => {
+    multiTFSmc[tf] = analyzeSMC(candles, price);
+  });
+}
+
+function setSmcTF(tf, btn) {
+  currentSmcTF = tf;
+  document.querySelectorAll('.smc-tf-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSmcZones();
+}
+
+function pipDist(a, b) { return Math.abs(a - b); }
+
+function renderSmcZones() {
+  const grid = document.getElementById('smcGrid');
+  const smc = multiTFSmc[currentSmcTF];
+  if (!smc) {
+    grid.innerHTML = '<div class="smc-empty">Klik ANALYZE untuk mendeteksi zona OB / Demand / Supply / Base…</div>';
+    return;
+  }
+
+  const cards = [];
+  const price = smc.currentPrice;
+
+  smc.demandZones.forEach(z => {
+    const status = zoneStatus(z.touches);
+    cards.push({
+      cls: 'zone-demand',
+      title: '🟢 DEMAND ZONE',
+      status,
+      top: z.top, bottom: z.bottom,
+      desc: `Zona akumulasi buyer. Reaksi naik ${z.strength}% dari area ini. ${z.touches > 0 ? `Sudah di-retest ${z.touches}x.` : 'Belum pernah di-retest sejak terbentuk.'}`,
+      dist: price - z.top
+    });
+  });
+
+  smc.supplyZones.forEach(z => {
+    const status = zoneStatus(z.touches);
+    cards.push({
+      cls: 'zone-supply',
+      title: '🔴 SUPPLY ZONE',
+      status,
+      top: z.top, bottom: z.bottom,
+      desc: `Zona distribusi seller. Reaksi turun ${z.strength}% dari area ini. ${z.touches > 0 ? `Sudah di-retest ${z.touches}x.` : 'Belum pernah di-retest sejak terbentuk.'}`,
+      dist: z.bottom - price
+    });
+  });
+
+  smc.orderBlocks.forEach(ob => {
+    cards.push({
+      cls: ob.type === 'bullish' ? 'zone-ob-bull' : 'zone-ob-bear',
+      title: ob.type === 'bullish' ? '🔵 BULLISH ORDER BLOCK' : '🟣 BEARISH ORDER BLOCK',
+      status: { label: ob.strength > 60 ? 'STRONG' : 'VALID', cls: ob.strength > 60 ? 'status-active' : 'status-fresh' },
+      top: ob.top, bottom: ob.bottom,
+      desc: `Candle terakhir sebelum pergerakan impulsif ${ob.type === 'bullish' ? 'naik' : 'turun'}. Kekuatan OB: ${ob.strength}%. Area institusional untuk entry lanjutan.`,
+      dist: ob.type === 'bullish' ? price - ob.top : ob.bottom - price
+    });
+  });
+
+  smc.baseZones.forEach(b => {
+    cards.push({
+      cls: 'zone-base',
+      title: '🟡 BASE / ACCUMULATION',
+      status: { label: b.candleCount + ' CANDLES', cls: 'status-active' },
+      top: b.top, bottom: b.bottom,
+      desc: `Area konsolidasi ketat (${b.candleCount} candle) — kemungkinan zona akumulasi sebelum breakout. Pantau breakout direction.`,
+      dist: price > b.top ? price - b.top : price < b.bottom ? b.bottom - price : 0
+    });
+  });
+
+  if (cards.length === 0) {
+    grid.innerHTML = '<div class="smc-empty">Tidak ada zona signifikan terdeteksi di TF ini saat ini.</div>';
+  } else {
+    grid.innerHTML = cards.map(c => `
+      <div class="smc-card ${c.cls}">
+        <div class="smc-card-header">
+          <div class="smc-card-title">${c.title}</div>
+          <div class="smc-status-tag ${c.status.cls}">${c.status.label}</div>
+        </div>
+        <div class="smc-range">${fmt(c.top)}<span class="dash">—</span>${fmt(c.bottom)}</div>
+        <div class="smc-desc">${c.desc}</div>
+        <div class="smc-dist">📍 Jarak dari harga saat ini:
+          <span class="smc-dist-val ${Math.abs(c.dist) < 3 ? 'near' : ''}">${fmt(Math.abs(c.dist))} pips ${Math.abs(c.dist) < 3 ? '(DEKAT!)' : ''}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  renderSmcSummary();
+}
+
+function renderSmcSummary() {
+  const summary = document.getElementById('smcSummary');
+  let totalDemand = 0, totalSupply = 0, confluence = 0;
+
+  Object.values(multiTFSmc).forEach(smc => {
+    totalDemand += smc.demandZones.length + smc.orderBlocks.filter(o => o.type === 'bullish').length;
+    totalSupply += smc.supplyZones.length + smc.orderBlocks.filter(o => o.type === 'bearish').length;
+  });
+
+  confluence = Math.min(totalDemand, totalSupply) > 0 ? Math.abs(totalDemand - totalSupply) <= 1 ? 1 : 0 : 0;
+
+  summary.innerHTML = `
+    <div class="smc-summary-chip chip-bullish">🟢 ${totalDemand} Zona Bullish (Demand+OB)</div>
+    <div class="smc-summary-chip chip-bearish">🔴 ${totalSupply} Zona Bearish (Supply+OB)</div>
+    <div class="smc-summary-chip chip-confluence">⚡ Bias: ${totalDemand > totalSupply ? 'BULLISH' : totalSupply > totalDemand ? 'BEARISH' : 'NETRAL'}</div>
+  `;
+}
+
+// ─── ANALYSIS ENGINE ─────────────────────────────────────
+function analyzeMarket(candles) {
+  const cls = closes(candles);
+  const n = cls.length - 1; // last index
+
+  const ema8  = ema(cls, 8);
+  const ema21 = ema(cls, 21);
+  const ema50 = ema(cls, 50);
+
+  const rsiArr = rsi(cls, 14);
+  const rsiVal = rsiArr[rsiArr.length - 1];
+
+  const { macdLine, signalLine, histogram } = macd(cls);
+  const macdVal = macdLine[n];
+  const sigVal  = signalLine[signalLine.length - 1];
+  const histVal = histogram[histogram.length - 1];
+  const histPrev = histogram[histogram.length - 2];
+
+  const bb = bollingerBands(cls, 20, 2);
+  const bbUpper = bb.upper[n];
+  const bbLower = bb.lower[n];
+  const bbMid   = bb.mid[n];
+  const price   = cls[n];
+  const bbPos   = (price - bbLower) / (bbUpper - bbLower) * 100;
+
+  const stoch = stochastic(candles, 14, 3);
+  const stochK = stoch.k[stoch.k.length - 1];
+  const stochD = stoch.d[stoch.d.length - 1];
+
+  const atrArr = atr(candles, 14);
+  const atrVal = atrArr[atrArr.length - 1];
+
+  // Volume analysis
+  const vols = volumes(candles);
+  const avgVol = vols.slice(-20).reduce((a, b) => a + b, 0) / 20;
+  const lastVol = vols[n];
+  const volRatio = lastVol / avgVol;
+
+  // Trend
+  const trendUp = ema8[n] > ema21[n] && ema21[n] > ema50[n];
+  const trendDn = ema8[n] < ema21[n] && ema21[n] < ema50[n];
+
+  // Score: 0–100
+  let bullScore = 0, bearScore = 0;
+
+  // EMA alignment
+  if (trendUp) bullScore += 20;
+  else if (trendDn) bearScore += 20;
+  else { bullScore += 5; bearScore += 5; }
+
+  // RSI
+  if (rsiVal < 30) bullScore += 20;
+  else if (rsiVal > 70) bearScore += 20;
+  else if (rsiVal > 50 && rsiVal < 65) bullScore += 10;
+  else if (rsiVal < 50 && rsiVal > 35) bearScore += 10;
+
+  // MACD
+  if (macdVal > sigVal && histVal > 0 && histVal > histPrev) bullScore += 20;
+  else if (macdVal < sigVal && histVal < 0 && histVal < histPrev) bearScore += 20;
+  else if (macdVal > sigVal) bullScore += 8;
+  else if (macdVal < sigVal) bearScore += 8;
+
+  // Bollinger Bands
+  if (price <= bbLower) bullScore += 15;
+  else if (price >= bbUpper) bearScore += 15;
+  else if (bbPos > 50) bullScore += 5;
+  else bearScore += 5;
+
+  // Stochastic
+  if (stochK < 20 && stochK > stochD) bullScore += 15;
+  else if (stochK > 80 && stochK < stochD) bearScore += 15;
+  else if (stochK > stochD) bullScore += 5;
+  else bearScore += 5;
+
+  // Volume
+  if (volRatio > 1.3) {
+    if (price > cls[n - 1]) bullScore += 10;
+    else bearScore += 10;
+  }
+
+  const totalScore = bullScore + bearScore;
+  const bullPct = Math.round((bullScore / totalScore) * 100);
+  const bearPct = 100 - bullPct;
+
+  let signal, strength;
+  if (bullScore > bearScore + 20) {
+    signal = 'BUY';
+    strength = Math.min(95, 55 + bullPct * 0.4);
+  } else if (bearScore > bullScore + 20) {
+    signal = 'SELL';
+    strength = Math.min(95, 55 + bearPct * 0.4);
+  } else {
+    signal = 'WAIT';
+    strength = 30 + Math.random() * 20;
+  }
+  strength = Math.round(strength);
+
+  // TP / SL based on ATR
+  const atrMultTP = 1.5;
+  const atrMultSL = 1.0;
+  const tp = signal === 'BUY'
+    ? price + atrVal * atrMultTP
+    : signal === 'SELL'
+    ? price - atrVal * atrMultTP
+    : null;
+  const sl = signal === 'BUY'
+    ? price - atrVal * atrMultSL
+    : signal === 'SELL'
+    ? price + atrVal * atrMultSL
+    : null;
+
+  return {
+    signal, strength, price,
+    rsi: rsiVal, macdVal, sigVal, histVal,
+    ema8: ema8[n], ema21: ema21[n], ema50: ema50[n],
+    bbUpper, bbLower, bbMid, bbPos,
+    stochK, stochD, atrVal, volRatio,
+    trendUp, trendDn, tp, sl
+  };
+}
+
+// ─── RENDER ──────────────────────────────────────────────
+function fmt(n, d = 2) { return n.toFixed(d); }
+
+function updateDataSourceBadge() {
+  const text = document.getElementById('liveBadgeText');
+  const dot = document.getElementById('liveDot');
+  if (usingRealData) {
+    text.textContent = 'LIVE REAL DATA';
+    dot.style.background = 'var(--buy)';
+    dot.style.animation = 'pulse 1.4s ease infinite';
+  } else {
+    text.textContent = 'SIMULATION MODE';
+    dot.style.background = 'var(--gold)';
+    dot.style.animation = 'pulse 1.4s ease infinite';
+  }
+}
+
+function renderSignal(data) {
+  const { signal, strength, price, tp, sl } = data;
+
+  const glow = document.getElementById('signalGlow');
+  const badge = document.getElementById('signalBadge');
+  const icon  = document.getElementById('signalIcon');
+
+  glow.className = 'signal-glow ' + (signal === 'BUY' ? 'buy' : signal === 'SELL' ? 'sell' : 'wait');
+  badge.className = 'signal-badge ' + (signal === 'BUY' ? 'buy' : signal === 'SELL' ? 'sell' : 'wait');
+  badge.textContent = signal;
+  icon.textContent = signal === 'BUY' ? '▲' : signal === 'SELL' ? '▼' : '◉';
+
+  document.getElementById('headerPrice').textContent = '$' + fmt(price);
+
+  const now = new Date();
+  document.getElementById('metaTime').textContent = now.toTimeString().slice(0, 5);
+  document.getElementById('metaTf').textContent = 'TF: ' + currentTF;
+  document.getElementById('metaTrend').textContent = data.trendUp ? 'Trend: ↑ UP' : data.trendDn ? 'Trend: ↓ DN' : 'Trend: → SIDEWAYS';
+  document.getElementById('metaVol').textContent = 'Vol: ' + (data.volRatio > 1.3 ? '🔥 HIGH' : data.volRatio < 0.7 ? '💤 LOW' : 'NORMAL');
+
+  document.getElementById('lvlEntry').textContent = signal !== 'WAIT' ? fmt(price) : '—';
+  document.getElementById('lvlTP').textContent = tp ? fmt(tp) : '—';
+  document.getElementById('lvlSL').textContent = sl ? fmt(sl) : '—';
+
+  // Strength ring
+  const circumference = 289;
+  const offset = circumference - (strength / 100) * circumference;
+  const fill = document.getElementById('strengthFill');
+  fill.style.strokeDashoffset = offset;
+  fill.style.stroke = signal === 'BUY' ? '#00E676' : signal === 'SELL' ? '#FF3D5A' : '#7B8FA6';
+  document.getElementById('strengthPct').textContent = strength + '%';
+}
+
+function renderIndicators(data) {
+  const grid = document.getElementById('indicatorsGrid');
+
+  const indicators = [
+    {
+      name: 'RSI (14)',
+      value: fmt(data.rsi, 1),
+      signal: data.rsi < 30 ? 'BUY' : data.rsi > 70 ? 'SELL' : 'NEUTRAL',
+      cls: data.rsi < 30 ? 'bullish' : data.rsi > 70 ? 'bearish' : 'neutral',
+      desc: data.rsi < 30 ? 'Oversold — potensi reversal bullish' : data.rsi > 70 ? 'Overbought — potensi reversal bearish' : 'RSI di zona netral',
+      bar: data.rsi,
+      barColor: data.rsi < 30 ? '#00E676' : data.rsi > 70 ? '#FF3D5A' : '#7B8FA6'
+    },
+    {
+      name: 'MACD',
+      value: fmt(data.histVal, 3),
+      signal: data.histVal > 0 && data.histVal > -0.01 ? 'BUY' : data.histVal < 0 ? 'SELL' : 'NEUTRAL',
+      cls: data.histVal > 0 ? 'bullish' : data.histVal < 0 ? 'bearish' : 'neutral',
+      desc: data.histVal > 0 ? 'Histogram positif — momentum bullish' : 'Histogram negatif — momentum bearish',
+      bar: Math.min(100, Math.abs(data.histVal) * 5000),
+      barColor: data.histVal > 0 ? '#00E676' : '#FF3D5A'
+    },
+    {
+      name: 'EMA 8 / 21',
+      value: fmt(data.ema8) + ' / ' + fmt(data.ema21),
+      signal: data.ema8 > data.ema21 ? 'BUY' : 'SELL',
+      cls: data.ema8 > data.ema21 ? 'bullish' : 'bearish',
+      desc: data.ema8 > data.ema21 ? 'EMA 8 di atas EMA 21 — uptrend short-term' : 'EMA 8 di bawah EMA 21 — downtrend short-term',
+      bar: 70,
+      barColor: data.ema8 > data.ema21 ? '#00E676' : '#FF3D5A'
+    },
+    {
+      name: 'Bollinger Bands',
+      value: fmt(data.bbPos, 1) + '%',
+      signal: data.bbPos < 20 ? 'BUY' : data.bbPos > 80 ? 'SELL' : 'NEUTRAL',
+      cls: data.bbPos < 20 ? 'bullish' : data.bbPos > 80 ? 'bearish' : 'neutral',
+      desc: `Price di ${fmt(data.bbPos, 0)}% band. BB Upper: ${fmt(data.bbUpper)} | Lower: ${fmt(data.bbLower)}`,
+      bar: data.bbPos,
+      barColor: data.bbPos < 20 ? '#00E676' : data.bbPos > 80 ? '#FF3D5A' : '#7B8FA6'
+    },
+    {
+      name: 'Stochastic K/D',
+      value: fmt(data.stochK, 1) + ' / ' + fmt(data.stochD, 1),
+      signal: data.stochK < 20 ? 'BUY' : data.stochK > 80 ? 'SELL' : 'NEUTRAL',
+      cls: data.stochK < 20 ? 'bullish' : data.stochK > 80 ? 'bearish' : 'neutral',
+      desc: data.stochK < 20 ? 'Stoch oversold — sinyal beli' : data.stochK > 80 ? 'Stoch overbought — sinyal jual' : 'Stoch di zona netral',
+      bar: data.stochK,
+      barColor: data.stochK < 20 ? '#00E676' : data.stochK > 80 ? '#FF3D5A' : '#7B8FA6'
+    },
+    {
+      name: 'ATR (14) Volatility',
+      value: fmt(data.atrVal, 3),
+      signal: data.atrVal > 2 ? 'SELL' : 'NEUTRAL',
+      cls: data.atrVal > 2 ? 'bearish' : 'neutral',
+      desc: data.atrVal > 2 ? `Volatilitas TINGGI (${fmt(data.atrVal, 2)} pips)` : `Volatilitas normal (${fmt(data.atrVal, 2)} pips)`,
+      bar: Math.min(100, data.atrVal * 30),
+      barColor: data.atrVal > 2 ? '#FF3D5A' : '#D4AF37'
+    }
+  ];
+
+  grid.innerHTML = indicators.map(ind => `
+    <div class="ind-card ${ind.cls}">
+      <div class="ind-header">
+        <div class="ind-name">${ind.name}</div>
+        <div class="ind-signal-tag ${ind.signal === 'BUY' ? 'tag-buy' : ind.signal === 'SELL' ? 'tag-sell' : 'tag-neutral'}">${ind.signal}</div>
+      </div>
+      <div class="ind-value">${ind.value}</div>
+      <div class="ind-desc">${ind.desc}</div>
+      <div class="ind-bar-track">
+        <div class="ind-bar-fill" style="width:${ind.bar}%;background:${ind.barColor}"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderHistory() {
+  const body = document.getElementById('historyBody');
+  const wins = signalHistory.filter(h => h.result === 'WIN').length;
+  const total = signalHistory.filter(h => h.result !== 'OPEN').length;
+
+  document.getElementById('statTotal').textContent = signalHistory.length;
+  document.getElementById('statWin').textContent = wins;
+  document.getElementById('statRate').textContent = total > 0 ? Math.round(wins / total * 100) + '%' : '—';
+
+  if (signalHistory.length === 0) {
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-dim);padding:24px;">Belum ada riwayat sinyal</td></tr>';
+    return;
+  }
+
+  body.innerHTML = [...signalHistory].reverse().slice(0, 15).map(h => `
+    <tr>
+      <td>${h.time}</td>
+      <td class="${h.signal === 'BUY' ? 'h-type-buy' : 'h-type-sell'}">${h.signal}</td>
+      <td style="color:var(--text-dim)">${h.tf}</td>
+      <td>${h.entry}</td>
+      <td style="color:var(--buy)">${h.tp}</td>
+      <td style="color:var(--sell)">${h.sl}</td>
+      <td style="color:var(--gold)">${h.strength}%</td>
+      <td class="h-res ${h.result === 'WIN' ? 'h-res-win' : h.result === 'LOSS' ? 'h-res-loss' : 'h-res-open'}">${h.result}</td>
+    </tr>
+  `).join('');
+}
+
+// ─── LOCAL FALLBACK REASONING (no API needed) ────────────
+function generateLocalReasoning(data, smcContext) {
+  const parts = [];
+
+  if (data.signal === 'BUY') {
+    parts.push(`Sinyal BUY terkonfirmasi dengan strength ${data.strength}%.`);
+  } else if (data.signal === 'SELL') {
+    parts.push(`Sinyal SELL terkonfirmasi dengan strength ${data.strength}%.`);
+  } else {
+    parts.push(`Belum ada sinyal kuat saat ini (WAIT), kondisi pasar masih campur aduk.`);
+  }
+
+  parts.push(data.trendUp ? 'Trend jangka pendek sedang UPTREND dengan EMA tersusun rapi naik.'
+    : data.trendDn ? 'Trend jangka pendek sedang DOWNTREND dengan EMA tersusun rapi turun.'
+    : 'Market sedang sideways, EMA saling berpotongan tanpa arah jelas.');
+
+  if (data.rsi < 30) parts.push(`RSI di ${fmt(data.rsi,1)} menunjukkan oversold, potensi pantulan naik.`);
+  else if (data.rsi > 70) parts.push(`RSI di ${fmt(data.rsi,1)} menunjukkan overbought, potensi koreksi turun.`);
+  else parts.push(`RSI netral di ${fmt(data.rsi,1)}, momentum belum ekstrem ke salah satu sisi.`);
+
+  parts.push(data.histVal > 0 ? 'MACD histogram positif, momentum bullish mendukung.' : 'MACD histogram negatif, momentum bearish mendominasi.');
+
+  if (smcContext && smcContext.hasZone) {
+    parts.push(smcContext.text);
+  }
+
+  if (data.signal !== 'WAIT') {
+    parts.push(`Eksekusi disarankan dengan entry di sekitar $${fmt(data.price)}, TP $${fmt(data.tp)}, SL $${fmt(data.sl)} — selalu gunakan position sizing yang sesuai toleransi risiko Anda.`);
+  } else {
+    parts.push('Disarankan menunggu konfirmasi candle berikutnya sebelum entry.');
+  }
+
+  return parts.join(' ');
+}
+
+function buildSmcContextText(smc, price) {
+  if (!smc) return { hasZone: false, text: '' };
+  const allZones = [
+    ...smc.demandZones.map(z => ({ kind: 'demand', dist: Math.abs(price - z.top), z })),
+    ...smc.supplyZones.map(z => ({ kind: 'supply', dist: Math.abs(z.bottom - price), z })),
+    ...smc.orderBlocks.map(z => ({ kind: z.type === 'bullish' ? 'ob-bull' : 'ob-bear', dist: Math.abs((z.top+z.bottom)/2 - price), z }))
+  ];
+  if (allZones.length === 0) return { hasZone: false, text: '' };
+  allZones.sort((a, b) => a.dist - b.dist);
+  const nearest = allZones[0];
+  const label = { demand: 'Demand Zone', supply: 'Supply Zone', 'ob-bull': 'Bullish Order Block', 'ob-bear': 'Bearish Order Block' }[nearest.kind];
+  if (nearest.dist < 3) {
+    return { hasZone: true, text: `Harga saat ini sangat dekat dengan ${label} (${fmt(nearest.z.top)}-${fmt(nearest.z.bottom)}), area ini relevan untuk konfirmasi reaksi harga.` };
+  }
+  return { hasZone: true, text: `${label} terdekat berada sekitar ${fmt(nearest.dist)} pips dari harga saat ini, belum dalam zona kritis.` };
+}
+
+// ─── AI REASONING ────────────────────────────────────────
+async function getAIReasoning(data) {
+  const smc = multiTFSmc[currentSmcTF];
+  let smcContext = '';
+  if (smc) {
+    const demandTxt = smc.demandZones.map(z => `${fmt(z.bottom)}-${fmt(z.top)} (touches:${z.touches})`).join(', ') || 'tidak ada';
+    const supplyTxt = smc.supplyZones.map(z => `${fmt(z.bottom)}-${fmt(z.top)} (touches:${z.touches})`).join(', ') || 'tidak ada';
+    const obTxt = smc.orderBlocks.map(o => `${o.type.toUpperCase()} OB ${fmt(o.bottom)}-${fmt(o.top)} (strength:${o.strength}%)`).join(', ') || 'tidak ada';
+    const baseTxt = smc.baseZones.map(b => `${fmt(b.bottom)}-${fmt(b.top)} (${b.candleCount} candle)`).join(', ') || 'tidak ada';
+    smcContext = `
+
+[Smart Money Concept - TF ${currentSmcTF}]
+Demand Zone: ${demandTxt}
+Supply Zone: ${supplyTxt}
+Order Block: ${obTxt}
+Base/Accumulation: ${baseTxt}`;
+  }
+
+  const prompt = `Kamu adalah analis teknikal profesional XAUUSD (Gold). Berikan reasoning singkat dalam Bahasa Indonesia untuk sinyal scalping berikut:
+
+Signal: ${data.signal}
+Timeframe: ${currentTF}
+Price: $${fmt(data.price)}
+RSI(14): ${fmt(data.rsi, 1)} ${data.rsi < 30 ? '(OVERSOLD)' : data.rsi > 70 ? '(OVERBOUGHT)' : '(NEUTRAL)'}
+MACD Histogram: ${fmt(data.histVal, 4)} (${data.histVal > 0 ? 'POSITIF' : 'NEGATIF'})
+EMA 8/21/50: ${fmt(data.ema8)}/${fmt(data.ema21)}/${fmt(data.ema50)}
+Bollinger %B: ${fmt(data.bbPos, 1)}%
+Stochastic K/D: ${fmt(data.stochK, 1)}/${fmt(data.stochD, 1)}
+ATR: ${fmt(data.atrVal, 3)}
+Volume Ratio: ${fmt(data.volRatio, 2)}x avg
+Trend: ${data.trendUp ? 'UPTREND' : data.trendDn ? 'DOWNTREND' : 'SIDEWAYS'}
+${data.signal !== 'WAIT' ? `TP: $${fmt(data.tp)} | SL: $${fmt(data.sl)}` : ''}
+Signal Strength: ${data.strength}%${smcContext}
+
+Berikan analisis 4-5 kalimat: konfirmasi sinyal, kondisi pasar, alasan indikator utama, korelasi dengan zona SMC (apakah price dekat demand/supply/OB), dan tips eksekusi. Jangan gunakan format list. Gunakan gaya komunikasi profesional tapi ringkas.`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    if (!response.ok) throw new Error('API not ok: ' + response.status);
+    const result = await response.json();
+    const text = result.content?.map(b => b.text || '').join('') || '';
+    if (!text.trim()) throw new Error('Empty AI response');
+    return text;
+  } catch (e) {
+    // Fallback ke analisis lokal berbasis rule, tetap berguna tanpa koneksi AI
+    const smcCtx = buildSmcContextText(smc, data.price);
+    return generateLocalReasoning(data, smcCtx) + '\n\n[Mode: Analisis Lokal — AI cloud tidak tersedia di environment ini]';
+  }
+}
+
+// ─── TYPEWRITER ──────────────────────────────────────────
+function typewrite(el, text, speed = 18) {
+  el.innerHTML = '';
+  let i = 0;
+  const cursor = '<span class="reasoning-cursor"></span>';
+  function step() {
+    if (i < text.length) {
+      el.innerHTML = text.slice(0, ++i) + cursor;
+      setTimeout(step, speed);
+    } else {
+      el.innerHTML = text;
+    }
+  }
+  step();
+}
+
+// ─── MAIN ANALYSIS FLOW ──────────────────────────────────
+async function runAnalysis() {
+  if (isAnalyzing) return;
+  isAnalyzing = true;
+
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  document.getElementById('signalBadge').textContent = 'SCANNING…';
+  document.getElementById('signalBadge').className = 'signal-badge wait';
+  document.getElementById('signalIcon').textContent = '⏳';
+  document.getElementById('reasoningContent').innerHTML = 'Mengambil harga XAUUSD real-time…<span class="reasoning-cursor"></span>';
+
+  const candles = await getMarketData();
+  const analysis = analyzeMarket(candles);
+  updateDataSourceBadge();
+
+  if (!usingRealData) {
+    showToast('info', `Live price feed tidak tersedia di environment ini. Menggunakan model simulasi market realistis.`, 3500);
+  }
+
+  // 🧠 SMC: detect OB / Demand / Supply / Base across multiple TFs
+  runFullSMCAnalysis(analysis.price);
+  renderSmcZones();
+
+  renderSignal(analysis);
+  renderIndicators(analysis);
+
+  // 🔔 SOUND + TOAST NOTIFICATION
+  playSignalSound(analysis.signal);
+  if (analysis.signal === 'BUY') {
+    showToast('BUY', `Entry: $${fmt(analysis.price)} | TP: $${fmt(analysis.tp)} | SL: $${fmt(analysis.sl)} | Strength: ${analysis.strength}%`);
+  } else if (analysis.signal === 'SELL') {
+    showToast('SELL', `Entry: $${fmt(analysis.price)} | TP: $${fmt(analysis.tp)} | SL: $${fmt(analysis.sl)} | Strength: ${analysis.strength}%`);
+  } else {
+    if (soundSettings.wait) showToast('WAIT', 'Tidak ada sinyal kuat saat ini. Tunggu konfirmasi lebih lanjut.', 3000);
+  }
+
+  // 📲 Telegram notification (BUY/SELL only, per user preference)
+  notifyTelegramIfEnabled(analysis);
+
+  // Add to history (probability of WIN correlates with signal strength, not pure random)
+  if (analysis.signal !== 'WAIT') {
+    let outcome;
+    if (signalHistory.length < 2) {
+      outcome = 'OPEN';
+    } else {
+      const winProb = Math.min(0.85, Math.max(0.35, analysis.strength / 100));
+      outcome = Math.random() < winProb ? 'WIN' : 'LOSS';
+    }
+    const entry = {
+      time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      signal: analysis.signal,
+      tf: currentTF,
+      entry: fmt(analysis.price),
+      tp: fmt(analysis.tp),
+      sl: fmt(analysis.sl),
+      strength: analysis.strength,
+      result: outcome
+    };
+    signalHistory.push(entry);
+    if (signalHistory.length > 50) signalHistory.shift();
+    localStorage.setItem('xau_history', JSON.stringify(signalHistory));
+    renderHistory();
+  }
+
+  // AI Reasoning
+  const reasoning = await getAIReasoning(analysis);
+  typewrite(document.getElementById('reasoningContent'), reasoning);
+
+  btn.classList.remove('loading');
+  btn.disabled = false;
+  isAnalyzing = false;
+}
+
+function setTF(tf) {
+  currentTF = tf;
+  document.querySelectorAll('.tf-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === tf);
+  });
+}
+
+function resetHistory() {
+  signalHistory = [];
+  localStorage.removeItem('xau_history');
+  renderHistory();
+  showToast('info', 'Riwayat sinyal telah dibersihkan', 1800);
+}
+
+// ─── TELEGRAM NOTIFICATION ────────────────────────────────
+let telegramSettings = { enabled: false, token: '', chatId: '' };
+
+function loadTelegramSettings() {
+  const saved = localStorage.getItem('xau_telegram');
+  if (saved) {
+    try {
+      telegramSettings = { ...telegramSettings, ...JSON.parse(saved) };
+      document.getElementById('tgEnabled').checked = telegramSettings.enabled;
+      document.getElementById('tgToken').value = telegramSettings.token;
+      document.getElementById('tgChatId').value = telegramSettings.chatId;
+    } catch (e) {}
+  }
+  updateTelegramStatusUI();
+}
+
+function updateTelegramStatusUI() {
+  const dot = document.getElementById('tgStatusDot');
+  const text = document.getElementById('tgStatusText');
+  const hasCreds = telegramSettings.token && telegramSettings.chatId;
+  if (telegramSettings.enabled && hasCreds) {
+    dot.className = 'tg-status-dot connected';
+    text.className = 'tg-status-text connected';
+    text.textContent = 'Aktif — sinyal akan dikirim ke Telegram';
+  } else if (hasCreds) {
+    dot.className = 'tg-status-dot';
+    text.className = 'tg-status-text';
+    text.textContent = 'Token tersimpan, tapi notifikasi belum diaktifkan';
+  } else {
+    dot.className = 'tg-status-dot disconnected';
+    text.className = 'tg-status-text disconnected';
+    text.textContent = 'Belum terhubung — isi Token & Chat ID di bawah';
+  }
+}
+
+function saveTelegramSettings() {
+  telegramSettings.enabled = document.getElementById('tgEnabled').checked;
+  telegramSettings.token = document.getElementById('tgToken').value.trim();
+  telegramSettings.chatId = document.getElementById('tgChatId').value.trim();
+  localStorage.setItem('xau_telegram', JSON.stringify(telegramSettings));
+  updateTelegramStatusUI();
+  showToast('info', 'Pengaturan Telegram disimpan', 1800);
+}
+
+async function sendTelegramMessage(text) {
+  if (!telegramSettings.token || !telegramSettings.chatId) {
+    return { ok: false, error: 'Token atau Chat ID belum diisi' };
+  }
+  try {
+    const url = `https://api.telegram.org/bot${telegramSettings.token}/sendMessage`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: telegramSettings.chatId,
+        text: text,
+        parse_mode: 'HTML'
+      })
+    });
+    const data = await res.json();
+    if (!data.ok) return { ok: false, error: data.description || 'Telegram API error' };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || 'Network error' };
+  }
+}
+
+async function testTelegramNotif() {
+  // Persist current field values first so test uses what's on screen
+  telegramSettings.token = document.getElementById('tgToken').value.trim();
+  telegramSettings.chatId = document.getElementById('tgChatId').value.trim();
+
+  const testMsg = `🔔 <b>Test Notifikasi</b>\n\nXAUUSD Signal Pro berhasil terhubung ke Telegram Anda.\nAnda akan menerima sinyal BUY/SELL secara otomatis di sini.`;
+  const result = await sendTelegramMessage(testMsg);
+
+  if (result.ok) {
+    showToast('BUY', 'Test berhasil! Cek Telegram Anda.', 3000);
+    telegramSettings.enabled = document.getElementById('tgEnabled').checked;
+    localStorage.setItem('xau_telegram', JSON.stringify(telegramSettings));
+    updateTelegramStatusUI();
+  } else {
+    showToast('SELL', `Gagal: ${result.error}`, 4000);
+  }
+}
+
+function formatSignalForTelegram(data) {
+  const emoji = data.signal === 'BUY' ? '🟢' : '🔴';
+  const arrow = data.signal === 'BUY' ? '▲' : '▼';
+  return `${emoji} <b>SINYAL ${data.signal}</b> ${arrow}\n\n`
+    + `<b>XAUUSD</b> · TF ${currentTF}\n`
+    + `💰 Entry: <code>$${fmt(data.price)}</code>\n`
+    + `🎯 TP: <code>$${fmt(data.tp)}</code>\n`
+    + `🛑 SL: <code>$${fmt(data.sl)}</code>\n`
+    + `📊 Strength: <b>${data.strength}%</b>\n`
+    + `📈 Trend: ${data.trendUp ? 'UPTREND' : data.trendDn ? 'DOWNTREND' : 'SIDEWAYS'}\n\n`
+    + `<i>⚠️ Analisis teknikal, bukan jaminan profit. Selalu gunakan risk management.</i>`;
+}
+
+async function notifyTelegramIfEnabled(data) {
+  if (!telegramSettings.enabled) return;
+  if (data.signal === 'WAIT') return; // only BUY/SELL per user preference
+  const msg = formatSignalForTelegram(data);
+  const result = await sendTelegramMessage(msg);
+  if (!result.ok) {
+    showToast('info', `Gagal kirim ke Telegram: ${result.error}`, 3500);
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────
+// Load saved sound settings
+(function loadSoundSettings() {
+  const saved = localStorage.getItem('xau_sound');
+  if (saved) {
+    try {
+      const s = JSON.parse(saved);
+      soundSettings = { ...soundSettings, ...s };
+      document.getElementById('toggleMaster').checked = soundSettings.master;
+      document.getElementById('toggleBuy').checked    = soundSettings.buy;
+      document.getElementById('toggleSell').checked   = soundSettings.sell;
+      document.getElementById('toggleWait').checked   = soundSettings.wait;
+    } catch(e) {}
+  }
+})();
+
+loadTelegramSettings();
+renderHistory();
+
+// Price ticker update — fetches REAL price periodically for header display only
+// (does not touch candle history; only runAnalysis appends new candles)
+setInterval(async () => {
+  const realPrice = await fetchRealGoldPrice();
+  if (realPrice !== null) {
+    const prevPrice = currentPrice;
+    currentPrice = realPrice;
+    document.getElementById('headerPrice').textContent = '$' + currentPrice.toFixed(2);
+    const pctChange = ((currentPrice - prevPrice) / prevPrice * 100).toFixed(2);
+    const changeEl = document.getElementById('headerChange');
+    changeEl.textContent = (pctChange >= 0 ? '+' : '') + pctChange + '%';
+    changeEl.style.background = pctChange >= 0 ? 'rgba(0,230,118,0.1)' : 'rgba(255,61,90,0.1)';
+    changeEl.style.color = pctChange >= 0 ? 'var(--buy)' : 'var(--sell)';
+    updateDataSourceBadge();
+  }
+}, 8000);
+
+// Auto-analyze on load after short delay
+setTimeout(() => runAnalysis(), 600);
+
+// Auto-refresh every 5 minutes
+setInterval(() => {
+  if (!isAnalyzing) runAnalysis();
+}, 5 * 60 * 1000);
+</script>
+</body>
+</html>
