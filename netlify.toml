@@ -1,0 +1,11 @@
+[build]
+  base = "xauusd-netlify"
+  publish = "xauusd-netlify/public"
+  command = "npm install"
+
+[functions]
+  directory = "xauusd-netlify/netlify/functions"
+  node_bundler = "esbuild"
+
+[functions."check-signal"]
+  schedule = "*/5 * * * *"
