@@ -1,0 +1,6 @@
+[build]
+  functions = "netlify/functions"
+
+[[scheduled-functions]]
+  name    = "check-signal"
+  cron    = "*/5 * * * *"

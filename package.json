@@ -1,0 +1,9 @@
+{
+  "name": "xauusd-signal-bot-v5",
+  "version": "5.0.0",
+  "description": "XAUUSD Signal Bot — Triple Filter v5 (15yr backtest validated)",
+  "private": true,
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
