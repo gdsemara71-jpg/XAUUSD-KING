@@ -1,6 +1,7 @@
 [build]
+  publish = "public"
   functions = "netlify/functions"
 
 [[scheduled-functions]]
-  name    = "check-signal"
-  cron    = "*/5 * * * *"
+  name = "check-signal"
+  cron = "*/5 * * * *"
